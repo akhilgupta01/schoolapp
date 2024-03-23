@@ -13,6 +13,7 @@ class SchoolApp:
     students_df = None
     students_grid = None
     config_df = None
+    allocation_done = False
 
     def render(self):
         self.render_sidebar()
@@ -30,7 +31,7 @@ class SchoolApp:
                 self.students_df['Target Section'] = None
     
     def render_main(self):
-        tab1, tab2 = st.tabs(["Students", "Analysis"])
+        tab1, tab2, tab3 = st.tabs(["Students", "Analysis", "Help"])
         with tab1:
             if self.students_df is not None:
                 gd = GridOptionsBuilder.from_dataframe(self.students_df)
@@ -45,6 +46,7 @@ class SchoolApp:
                         self.students_df['Target Section'] = None
                         allocator = StudentAllocator(self.students_df, self.config_df['New Sections'].tolist())
                         self.students_df = allocator.allocate()
+                        self.allocation_done = True
                         st.rerun()
                 with cols[1]:
                     btn_save = st.button("Save")
@@ -52,20 +54,10 @@ class SchoolApp:
                         self.students_df = self.students_grid['data']
                         st.rerun()
             else:
-                st.markdown("""
-                            ## Usage Instructions
-                            -   Download the xls template using the `Download Template` button below
-                            -   Fill the student details in the first sheet
-                            -   Upload the filled xls and press the `Load` button
-                            """)
-                with open('Students_template.xlsx', 'rb') as f:
-                    st.download_button('Download Template', f, file_name='Students_template.xlsx')
-
-
-
+                st.markdown("Please load the students data first. See `Help` tab for more details.")
 
         with tab2:
-            if self.students_df is not None:
+            if self.students_df is not None and self.allocation_done:
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     dd1 = self.students_df[['Target Section', 'Gender']]
@@ -88,6 +80,26 @@ class SchoolApp:
                     fig3 = px.histogram(dd3, x='Target Section', color='RTE', barmode='group', title="RTE distribution", category_orders={"Target Section": self.config_df['New Sections'].tolist()})
                     fig3.update_layout(yaxis_title="Student Count", autosize=False, width=400, height=400)
                     st.plotly_chart(fig3, theme="streamlit")
+            else:
+                st.markdown("Please load the students data and press the `Allocate` button first. See `Help` tab for more details.")
+
+        with tab3:
+            st.markdown("""
+                        ## Usage Instructions
+                        -   Download the xls template using the `Download Template` button below
+                        -   Fill the student details in the sheet named `Students`
+                        -   Provide following information in the sheet named `Configuration`
+                            -   `New Sections`: List of sections to which students need to be allocated
+                        -   Upload the filled xls and press the `Load` button
+                        -   Press the `Allocate` button to automatically allocate students to various sections
+                        -   Analyze the student allocation graphs on the `Analysis` tab
+                        -   If you wish to change the allocation, you can manually change the `Target Section` column and press `Save` button
+                        -   When finished, right click on the table and press `Download CSV` to download the allocated students data
+                        """)
+            with open('Students_template.xlsx', 'rb') as f:
+                st.download_button('Download Template', f, file_name='Students_template.xlsx')
+
+
 
     def popup_sheet_selection(self, sheets):
         self.selected_sheets = []
