@@ -94,7 +94,7 @@ class SchoolApp:
                         -   Press the `Allocate` button to automatically allocate students to various sections
                         -   Analyze the student allocation graphs on the `Analysis` tab
                         -   If you wish to change the allocation, you can manually change the `Target Section` column and press `Save` button
-                        -   When finished, right click on the table and press `Download CSV` to download the allocated students data
+                        -   When finished, right click on the data table displayed on the `Students` tab and press `Export` -> `Excel Export`
                         """)
             with open('Students_template.xlsx', 'rb') as f:
                 st.download_button('Download Template', f, file_name='Students_template.xlsx')
